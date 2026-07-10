@@ -36,6 +36,8 @@ private:
 
     std::unordered_map<OrderId, OrderLocation> order_lookup_;
 
+    void validateOrder(const Order& order) const;
+
     std::vector<Trade> matchBuyOrder(Order incoming);
     std::vector<Trade> matchSellOrder(Order incoming);
 

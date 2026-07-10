@@ -2,10 +2,14 @@
 
 #include <algorithm>
 
+#include "engine/exceptions.hpp"
+
 namespace engine {
 
 std::vector<Trade> OrderBook::addOrder(const Order& order)
 {
+    validateOrder(order);
+
     if (order.type == OrderType::Market) {
         if (order.side == Side::Buy) {
             return matchBuyOrder(order);
@@ -15,12 +19,10 @@ std::vector<Trade> OrderBook::addOrder(const Order& order)
     }
 
     if (order.side == Side::Buy) {
-        auto trades = matchBuyOrder(order);
-        return trades;
+        return matchBuyOrder(order);
     }
 
-    auto trades = matchSellOrder(order);
-    return trades;
+    return matchSellOrder(order);
 }
 
 bool OrderBook::cancelOrder(OrderId order_id)
@@ -78,6 +80,25 @@ std::optional<Price> OrderBook::bestAsk() const
 bool OrderBook::empty() const
 {
     return bids_.empty() && asks_.empty();
+}
+
+void OrderBook::validateOrder(const Order& order) const
+{
+    if (order.id == 0) {
+        throw InvalidOrder("Order ID must be greater than zero.");
+    }
+
+    if (order.quantity == 0) {
+        throw InvalidOrder("Order quantity must be greater than zero.");
+    }
+
+    if (order.type == OrderType::Limit && order.price <= 0) {
+        throw InvalidOrder("Limit order price must be greater than zero.");
+    }
+
+    if (order_lookup_.contains(order.id)) {
+        throw DuplicateOrderId("A resting order with this ID already exists.");
+    }
 }
 
 std::vector<Trade> OrderBook::matchBuyOrder(Order incoming)

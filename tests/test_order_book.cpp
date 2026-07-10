@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "engine/exceptions.hpp"
+
 namespace {
 
 using engine::Order;
@@ -206,6 +208,56 @@ TEST(OrderBookTest, CancellingUnknownOrderReturnsFalse)
     OrderBook book;
 
     EXPECT_FALSE(book.cancelOrder(999));
+}
+TEST(OrderBookTest, RejectsZeroQuantityOrder)
+{
+    OrderBook book;
+
+    EXPECT_THROW(
+        book.addOrder(makeLimitOrder(1, Side::Buy, 10000, 0, 1)),
+        engine::InvalidOrder
+    );
+}
+
+TEST(OrderBookTest, RejectsInvalidLimitPrice)
+{
+    OrderBook book;
+
+    EXPECT_THROW(
+        book.addOrder(makeLimitOrder(1, Side::Buy, 0, 50, 1)),
+        engine::InvalidOrder
+    );
+}
+
+TEST(OrderBookTest, RejectsZeroOrderId)
+{
+    OrderBook book;
+
+    EXPECT_THROW(
+        book.addOrder(makeLimitOrder(0, Side::Buy, 10000, 50, 1)),
+        engine::InvalidOrder
+    );
+}
+
+TEST(OrderBookTest, RejectsDuplicateRestingOrderId)
+{
+    OrderBook book;
+
+    book.addOrder(makeLimitOrder(1, Side::Buy, 10000, 50, 1));
+
+    EXPECT_THROW(
+        book.addOrder(makeLimitOrder(1, Side::Buy, 9900, 20, 2)),
+        engine::DuplicateOrderId
+    );
+}
+
+TEST(OrderBookTest, MarketOrderDoesNotRequirePositivePrice)
+{
+    OrderBook book;
+
+    EXPECT_NO_THROW(
+        book.addOrder(makeMarketOrder(1, Side::Buy, 50, 1))
+    );
 }
 
 } // namespace
