@@ -101,6 +101,40 @@ void OrderBook::validateOrder(const Order& order) const
     }
 }
 
+Quantity OrderBook::bidQuantityAt(Price price) const
+{
+    const auto level_it = bids_.find(price);
+
+    if (level_it == bids_.end()) {
+        return 0;
+    }
+
+    Quantity total_quantity = 0;
+
+    for (const auto& order : level_it->second) {
+        total_quantity += order.remaining_quantity;
+    }
+
+    return total_quantity;
+}
+
+Quantity OrderBook::askQuantityAt(Price price) const
+{
+    const auto level_it = asks_.find(price);
+
+    if (level_it == asks_.end()) {
+        return 0;
+    }
+
+    Quantity total_quantity = 0;
+
+    for (const auto& order : level_it->second) {
+        total_quantity += order.remaining_quantity;
+    }
+
+    return total_quantity;
+}
+
 std::vector<Trade> OrderBook::matchBuyOrder(Order incoming)
 {
     std::vector<Trade> trades;

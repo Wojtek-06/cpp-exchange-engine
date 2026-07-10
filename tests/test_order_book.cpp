@@ -260,4 +260,34 @@ TEST(OrderBookTest, MarketOrderDoesNotRequirePositivePrice)
     );
 }
 
+TEST(OrderBookTest, ReportsAggregatedQuantityAtPriceLevel)
+{
+    OrderBook book;
+
+    book.addOrder(makeLimitOrder(1, Side::Buy, 10000, 40, 1));
+    book.addOrder(makeLimitOrder(2, Side::Buy, 10000, 60, 2));
+    book.addOrder(makeLimitOrder(3, Side::Sell, 10100, 25, 3));
+
+    EXPECT_EQ(book.bidQuantityAt(10000), 100);
+    EXPECT_EQ(book.askQuantityAt(10100), 25);
+}
+
+TEST(OrderBookTest, MissingPriceLevelHasZeroQuantity)
+{
+    OrderBook book;
+
+    EXPECT_EQ(book.bidQuantityAt(10000), 0);
+    EXPECT_EQ(book.askQuantityAt(10100), 0);
+}
+
+TEST(OrderBookTest, PartialFillUpdatesPriceLevelQuantity)
+{
+    OrderBook book;
+
+    book.addOrder(makeLimitOrder(1, Side::Sell, 10100, 100, 1));
+    book.addOrder(makeLimitOrder(2, Side::Buy, 10100, 40, 2));
+
+    EXPECT_EQ(book.askQuantityAt(10100), 60);
+}
+
 } // namespace

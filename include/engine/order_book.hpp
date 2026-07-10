@@ -20,6 +20,9 @@ public:
     std::optional<Price> bestBid() const;
     std::optional<Price> bestAsk() const;
 
+    Quantity bidQuantityAt(Price price) const;
+    Quantity askQuantityAt(Price price) const;
+
     bool empty() const;
 
 private:
